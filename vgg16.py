@@ -2,86 +2,62 @@
 
 import torch
 import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
-import torch.optim as optim
+from torch import optim
 from torchvision.models import VGG16_Weights
 from tqdm.rich import trange
 
 
-transform = transforms.Compose([
-    torchvision.transforms.ToTensor(),
-    torchvision.transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
+class VGG16():
+    def __init__(self, device, batch_size, epochs, plot, train_loader, test_loader, criterion):
 
-train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+        model = torchvision.models.vgg16(weights=VGG16_Weights.DEFAULT)
+        model.classifier[6] = nn.Linear(4096, 10)
+        self.device = device
+        self.model = model.to(self.device)
+        self.plot = plot
+        self.epochs = epochs
+        self.batch_size = batch_size
+        self.train_loader = train_loader
+        self.test_loader = test_loader
+        self.optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+        self.criterion = criterion
 
-DEVICE = torch.device("mps")
-BATCH_SIZE = 512
-EPOCHS = 100
+    def train(self):
+        train_losses = []
+        train_accuracies = []
+        for epoch in trange(self.epochs):
+            self.model.train()
+            loss = None
+            outputs = None
+            labels = None
+            for i, data in enumerate(self.train_loader, 0):
+                inputs, labels = data
+                inputs, labels = inputs.to(self.device), labels.to(self.device)
+                self.optimizer.zero_grad()
+                outputs = self.model(inputs)
+                loss = self.criterion(outputs, labels)
+                loss.backward()
+                self.optimizer.step()
+            train_losses.append(loss.item())
+            train_accuracies.append((outputs.argmax(1) == labels).sum().item() / self.batch_size)
 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        self.plot(train_losses, train_accuracies)
 
-model = torchvision.models.vgg16(weights=VGG16_Weights.DEFAULT)
-model.classifier[6] = nn.Linear(4096, 10)
-model = model.to(DEVICE)
+    def test(self):
+        """
+        test by percentage correct
+        """
+        self.model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for data in self.test_loader:
+                images, labels = data
+                images, labels = images.to(self.device), labels.to(self.device)
+                outputs = self.model(images)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
 
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-# plot loss and accuracy
-def plot(losses, accuracies):
-    import matplotlib.pyplot as plt
-
-    plt.figure(figsize=(10, 5))
-    plt.subplot(1, 2, 1)
-    plt.plot(losses)
-    plt.title("Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-
-    plt.subplot(1, 2, 2)
-    plt.plot(accuracies)
-    plt.title("Accuracy")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-
-    plt.show()
-
-
-train_losses = []
-train_accuracies = []
-for epoch in trange(EPOCHS):
-    model.train()
-    loss = None
-    outputs = None
-    labels = None
-    for i, data in enumerate(train_loader, 0):
-        inputs, labels = data
-        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
-    train_losses.append(loss.item())
-    train_accuracies.append((outputs.argmax(1) == labels).sum().item() / BATCH_SIZE)
-
-plot(train_losses, train_accuracies)
-
-model.eval()
-correct = 0
-total = 0
-with torch.no_grad():
-    for data in test_loader:
-        images, labels = data
-        images, labels = images.to(DEVICE), labels.to(DEVICE)
-        outputs = model(images)
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-
-print('Accuracy of the network on the 10000 test images: %d %%' % (100 * correct / total))
-
+        print(f"Accuracy: {100 * correct / total:.2f}%")
