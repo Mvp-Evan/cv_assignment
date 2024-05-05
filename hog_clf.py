@@ -9,11 +9,10 @@ from sklearn.metrics import classification_report
 import numpy as np
 import matplotlib.pyplot as plt
 
+from config import DatasetConf
+
 # 设置数据转换
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-])
+transform = DatasetConf.Transforms
 
 # 加载CIFAR-10数据集
 train_data = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)

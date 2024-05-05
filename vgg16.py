@@ -7,6 +7,8 @@ from torch import optim
 from torchvision.models import VGG16_Weights
 from tqdm.rich import trange
 
+from config import TrainConf, DatasetConf
+
 
 class VGG16():
     def __init__(self, device, batch_size, epochs, plot, train_loader, test_loader, criterion):
@@ -20,7 +22,7 @@ class VGG16():
         self.batch_size = batch_size
         self.train_loader = train_loader
         self.test_loader = test_loader
-        self.optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+        self.optimizer = optim.SGD(model.parameters(), lr=TrainConf.LearningRate, momentum=0.9)
         self.criterion = criterion
 
     def train(self):
@@ -61,3 +63,46 @@ class VGG16():
                 correct += (predicted == labels).sum().item()
 
         print(f"Accuracy: {100 * correct / total:.2f}%")
+
+
+def plot(losses, accuracies):
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(losses)
+    plt.title("Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+
+    plt.subplot(1, 2, 2)
+    plt.plot(accuracies)
+    plt.title("Accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+
+    plt.show()
+
+
+def main():
+    transform = DatasetConf.Transform
+
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+    DEVICE = TrainConf.Device
+    BATCH_SIZE = TrainConf.BatchSize
+    EPOCHS = TrainConf.Epochs
+
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+    criterion = nn.CrossEntropyLoss()
+
+    vgg16 = VGG16(DEVICE, BATCH_SIZE, EPOCHS, plot, train_loader, test_loader, criterion)
+    vgg16.train()
+    vgg16.test()
+
+
+if __name__ == '__main__':
+    main()
