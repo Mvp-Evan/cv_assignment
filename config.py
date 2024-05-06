@@ -14,7 +14,7 @@ class DatasetConf:
 
 
 class TrainConf:
-    Epochs = 50
+    Epochs = 100
     BatchSize = 512
     LearningRate = 0.001
     Device = torch.device("mps")
