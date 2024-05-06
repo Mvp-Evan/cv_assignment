@@ -142,6 +142,7 @@ for epoch in trange(EPOCHS):
 
     train_losses.append(loss.item())
     train_accuracies.append(accuracy_fn(outputs, labels).item())
+    print(f"Loss: {loss.item()}, Accuracy: {train_accuracies[-1]}")
 
 plot(train_losses, train_accuracies)
 
