@@ -4,7 +4,7 @@ from torchvision import transforms
 
 
 class DatasetConf:
-    Type = ['CIFAR-10', 'STL-10'][0]
+    Type = ['CIFAR-10', 'STL-10'][1]
     InputDim = 32 if Type == 'CIFAR-10' else 96
     Root = './data'
     AllInGrey = False
@@ -27,6 +27,7 @@ class TrainConf:
     BatchSize = 512
     LearningRate = 0.001
     Device = torch.device("mps")
+    NumClusters = 75
 
 class CNNConf:
     UseAutoEncoder = True

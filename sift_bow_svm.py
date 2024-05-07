@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 
-from config import DatasetConf
+from config import DatasetConf, TrainConf
 from utils import to_numpy, build_bow, features_bow, train_svm_classifier
 
 
@@ -13,6 +13,10 @@ def extract_sift_features(X):
     for img in X:
         img = (img * 255).astype(np.uint8)  # 转换为8位图像
         kp, desc = sift.detectAndCompute(img, None)
+        # 如果检测到的特征数小于TrainConf.NumClusters，则添加0向量并跳过
+        if desc is None or len(kp) < TrainConf.NumClusters:
+            desc = np.zeros((TrainConf.NumClusters, 128))
+
         descriptors_list.append(desc)
 
     return descriptors_list
