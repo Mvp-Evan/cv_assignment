@@ -47,17 +47,28 @@ print('Training SVM...')
 clf = svm.SVC(kernel='linear')
 clf.fit(X_train_hog, y_train)
 
-# 评估
-print('Evaluating...')
-y_pred = clf.predict(X_test_hog)
-print(metrics.classification_report(y_test, y_pred))
+# 展示hog特征图
 
-# 可视化一些HOG特征
 import matplotlib.pyplot as plt
-fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(16, 6))
-for i, axi in enumerate(ax.flat):
-    axi.imshow(X_train[i])
-    axi.axis('off')
-    axi.set_title(str(y_train[i]))
 
+# 选择多个图像
+fig, axs = plt.subplots(2, 5, figsize=(20, 8))  # 创建一个2行5列的subplot网格
+
+for i in range(5):
+    image = X_train[i]
+    gray_image = color.rgb2gray(image)
+    # 提取HOG特征
+    hog_feature, hog_image = feature.hog(gray_image, visualize=True)
+
+    # 显示原始图像
+    axs[0, i].imshow(image)
+    axs[0, i].set_title(f'Original Image {i + 1}')
+    axs[0, i].axis('off')
+
+    # 显示HOG特征图
+    axs[1, i].imshow(hog_image, cmap='gray')
+    axs[1, i].set_title(f'HOG Feature {i + 1}')
+    axs[1, i].axis('off')
+
+plt.tight_layout()
 plt.show()
