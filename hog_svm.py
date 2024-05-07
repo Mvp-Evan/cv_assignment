@@ -8,7 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 from config import DatasetConf
-
+from utils import train_svm_classifier
 
 # 下载训练集和测试集
 trainset = DatasetConf.TrainDataset
@@ -44,8 +44,13 @@ print('Extracting HOG features...')
 X_train_hog = extract_hog_features(X_train)
 X_test_hog = extract_hog_features(X_test)
 print('Training SVM...')
-clf = svm.SVC(kernel='linear')
-clf.fit(X_train_hog, y_train)
+clf = train_svm_classifier(X_train_hog, y_train)
+
+# 进行预测
+predictions = clf.predict(X_test_hog)
+
+# 评估模型
+print(metrics.classification_report(y_test, predictions))
 
 # 展示hog特征图
 

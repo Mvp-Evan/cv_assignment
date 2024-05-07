@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from config import DatasetConf
-
+from utils import train_svm_classifier
 
 # 加载CIFAR-10数据集
 train_data = DatasetConf.TrainDataset
@@ -43,8 +43,7 @@ test_features = extract_features(test_images)
 print("features extracted")
 
 # 训练随机森林分类器
-clf = svm.SVC(kernel='linear')
-clf.fit(train_features, train_labels.numpy().ravel())
+clf = train_svm_classifier(train_features, train_labels.numpy().ravel())
 print("SVM trained")
 
 # 进行预测
