@@ -8,14 +8,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 
 from config import DatasetConf, TrainConf
-from utils import build_bow, features_bow, train_svm_classifier
+from utils import build_bow, features_bow, train_svm_classifier, to_numpy
 
-
-def to_numpy(dataset):
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False)
-    data = next(iter(data_loader))
-    images, labels = data
-    return images.numpy().transpose((0, 2, 3, 1)), labels.numpy()
 
 # 提取 SIFT 特征
 def extract_sift_features(images):
@@ -28,10 +22,7 @@ def extract_sift_features(images):
         # 若未检测到特征则添加零向量
         if descriptors is None:
             descriptors = np.zeros((1, 128))
-        if TrainConf.UseCluster:
-            descriptors_list.append(descriptors)
-        else:
-            descriptors_list.append(descriptors.mean(axis=0))
+        descriptors_list.append(descriptors.mean(axis=0))
     return np.array(descriptors_list)
 
 # 绘制图像与特征
@@ -56,12 +47,6 @@ X_test, y_test = to_numpy(testset)
 # 提取特征
 X_train_sift = extract_sift_features(X_train)
 X_test_sift = extract_sift_features(X_test)
-
-if TrainConf.UseCluster:
-    # 构建并训练 BoW 模型
-    bow_kmeans = build_bow(X_train_sift)
-    X_train_bow = features_bow(X_train_sift, bow_kmeans)
-    X_test_bow = features_bow(X_test_sift, bow_kmeans)
 
 # 训练分类器
 clf = train_svm_classifier(X_train_sift, y_train)

@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 from sklearn import svm
 from sklearn.cluster import MiniBatchKMeans
 from sklearn.pipeline import make_pipeline
@@ -26,3 +27,10 @@ def train_svm_classifier(features, labels):
     clf = make_pipeline(StandardScaler(), svm.SVC(kernel='linear'))
     clf.fit(features, labels)
     return clf
+
+
+def to_numpy(dataset):
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False)
+    data = next(iter(data_loader))
+    images, labels = data
+    return images.numpy().transpose((0, 2, 3, 1)), labels.numpy()

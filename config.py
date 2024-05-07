@@ -27,8 +27,6 @@ class TrainConf:
     BatchSize = 512
     LearningRate = 0.001
     Device = torch.device("mps")
-    UseCluster = False
-
 
 class CNNConf:
     UseAutoEncoder = True

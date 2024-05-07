@@ -8,21 +8,11 @@ import torchvision
 import torchvision.transforms as transforms
 
 from config import DatasetConf, TrainConf
-from utils import train_svm_classifier, build_bow, features_bow
+from utils import train_svm_classifier, build_bow, features_bow, to_numpy
 
 # 下载训练集和测试集
 trainset = DatasetConf.TrainDataset
 testset = DatasetConf.TestDataset
-
-
-# 转换为NumPy数组的辅助函数
-def to_numpy(dataset):
-    data_loader = torch.utils.data.DataLoader(dataset, batch_size=len(dataset), shuffle=False)
-    data = next(iter(data_loader))
-    images, labels = data
-    # 转换为NumPy数组并调整图像格式为HWC（高度，宽度，通道）
-    return images.numpy().transpose((0, 2, 3, 1)), labels.numpy()
-
 
 # 获取NumPy格式的数据
 X_train, y_train = to_numpy(trainset)
@@ -43,12 +33,6 @@ def extract_hog_features(images):
 print('Extracting HOG features...')
 X_train_hog = extract_hog_features(X_train)
 X_test_hog = extract_hog_features(X_test)
-
-if TrainConf.UseCluster:
-    # 构建并训练 BoW 模型
-    bow_kmeans = build_bow(X_train_hog)
-    X_train_hog = features_bow(X_train_hog, bow_kmeans)
-    X_test_hog = features_bow(X_test_hog, bow_kmeans)
 
 print('Training SVM...')
 clf = train_svm_classifier(X_train_hog, y_train)
