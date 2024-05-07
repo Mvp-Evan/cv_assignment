@@ -5,10 +5,9 @@ from tqdm.rich import trange
 
 from config import CNNConf, TrainConf, DatasetConf
 
-transform = DatasetConf.Transforms
 
-train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+train_dataset = DatasetConf.TrainDataset
+test_dataset = DatasetConf.TestDataset
 
 DEVICE = TrainConf.Device
 BATCH_SIZE = TrainConf.BatchSize
@@ -89,7 +88,7 @@ class VAE(nn.Module):
 
 
 class CNN(nn.Module):
-    def __init__(self, VAE, output_dim):
+    def __init__(self, VAE, input_dim, output_dim):
         super(CNN, self).__init__()
 
         self.VAE = VAE
@@ -101,7 +100,7 @@ class CNN(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Flatten(),
-            nn.Linear(8 * 16 * 16, 8 * 16 * 16),
+            nn.Linear(8 * (input_dim//2) * (input_dim//2), 8 * 16 * 16),
             nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(8 * 16 * 16, output_dim),
@@ -157,7 +156,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, s
 
 
 # model
-model = CNN(VAE(Encoder(32, 256, 20), Decoder(20, 256, 32)), 10).to(DEVICE)
+model = CNN(VAE(Encoder(DatasetConf.InputDim, 256, 20), Decoder(20, 256, DatasetConf.InputDim)), DatasetConf.InputDim, 10).to(DEVICE)
 
 # loss function
 criterion = nn.CrossEntropyLoss()
@@ -185,6 +184,7 @@ for epoch in trange(EPOCHS):
 
     train_losses.append(loss.item())
     train_accuracies.append(accuracy_fn(outputs, labels).item())
+    print(f"Epoch: {epoch + 1}, Loss: {loss.item()}, Accuracy: {train_accuracies[-1]}")
 
 plot(train_losses, train_accuracies)
 

@@ -85,10 +85,8 @@ def plot(losses, accuracies):
 
 
 def main():
-    transform = DatasetConf.Transform
-
-    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    train_dataset = DatasetConf.TrainDataset
+    test_dataset = DatasetConf.TestDataset
 
     DEVICE = TrainConf.Device
     BATCH_SIZE = TrainConf.BatchSize

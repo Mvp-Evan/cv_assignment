@@ -10,12 +10,10 @@ import matplotlib.pyplot as plt
 
 from config import DatasetConf
 
-# 设置数据转换
-transform = DatasetConf.Transforms
 
 # 加载CIFAR-10数据集
-train_data = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-test_data = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+train_data = DatasetConf.TrainDataset
+test_data = DatasetConf.TestDataset
 
 train_loader = DataLoader(train_data, batch_size=len(train_data), shuffle=True)
 test_loader = DataLoader(test_data, batch_size=len(test_data), shuffle=False)
@@ -41,10 +39,12 @@ def extract_features(images):
 # 提取特征
 train_features = extract_features(train_images)
 test_features = extract_features(test_images)
+print("features extracted...")
 
 # 训练随机森林分类器
 clf = RandomForestClassifier(n_estimators=50, random_state=42)
 clf.fit(train_features, train_labels.numpy().ravel())
+print("Random Forest trained...")
 
 # 进行预测
 predictions = clf.predict(test_features)

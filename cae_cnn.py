@@ -5,10 +5,8 @@ from tqdm.rich import trange
 
 from config import CNNConf, DatasetConf, TrainConf
 
-transform = DatasetConf.Transforms
-
-train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+train_dataset = DatasetConf.TrainDataset
+test_dataset = DatasetConf.TestDataset
 
 DEVICE = TrainConf.Device
 BATCH_SIZE = TrainConf.BatchSize
@@ -27,7 +25,8 @@ class CAE(nn.Module):
             nn.ReLU(),
             nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=7)
+            nn.Conv2d(32, 64, kernel_size=7),
+            nn.ReLU()
         )
 
         self.decoder = nn.Sequential(
@@ -46,7 +45,7 @@ class CAE(nn.Module):
 
 
 class CNN(nn.Module):
-    def __init__(self, CAE, output_dim):
+    def __init__(self, CAE, input_dim, output_dim):
         super(CNN, self).__init__()
 
         self.CAE = CAE
@@ -58,7 +57,7 @@ class CNN(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Flatten(),
-            nn.Linear(8 * 16 * 16, 8 * 16 * 16),
+            nn.Linear(8 * (input_dim//2) * (input_dim//2), 8 * 16 * 16),
             nn.ReLU(),
             nn.Dropout(0.2),
             nn.Linear(8 * 16 * 16, output_dim),
@@ -114,7 +113,7 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZE, s
 
 
 # model
-model = CNN(CAE(), 10).to(DEVICE)
+model = CNN(CAE(), DatasetConf.InputDim, 10).to(DEVICE)
 
 # loss function
 criterion = nn.CrossEntropyLoss()

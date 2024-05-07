@@ -9,14 +9,10 @@ import torchvision.transforms as transforms
 
 from config import DatasetConf
 
-# 设置transform来将数据转换为tensor
-transform = DatasetConf.Transforms
 
 # 下载训练集和测试集
-trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                        download=True, transform=transform)
-testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                       download=True, transform=transform)
+trainset = DatasetConf.TrainDataset
+testset = DatasetConf.TestDataset
 
 
 # 转换为NumPy数组的辅助函数
@@ -55,3 +51,13 @@ clf.fit(X_train_hog, y_train)
 print('Evaluating...')
 y_pred = clf.predict(X_test_hog)
 print(metrics.classification_report(y_test, y_pred))
+
+# 可视化一些HOG特征
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(16, 6))
+for i, axi in enumerate(ax.flat):
+    axi.imshow(X_train[i])
+    axi.axis('off')
+    axi.set_title(str(y_train[i]))
+
+plt.show()
