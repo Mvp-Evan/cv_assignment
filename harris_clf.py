@@ -8,8 +8,8 @@ from sklearn.metrics import classification_report
 import numpy as np
 import matplotlib.pyplot as plt
 
-from config import DatasetConf
-
+from config import DatasetConf, TrainConf
+from utils import build_bow, features_bow
 
 # 加载CIFAR-10数据集
 train_data = DatasetConf.TrainDataset
@@ -40,6 +40,12 @@ def extract_features(images):
 train_features = extract_features(train_images)
 test_features = extract_features(test_images)
 print("features extracted...")
+
+if TrainConf.UseCluster:
+    # 构建并训练 BoW 模型
+    bow_kmeans = build_bow(train_features)
+    train_features = features_bow(train_features, bow_kmeans)
+    test_features = features_bow(test_features, bow_kmeans)
 
 # 训练随机森林分类器
 clf = RandomForestClassifier(n_estimators=50, random_state=42)

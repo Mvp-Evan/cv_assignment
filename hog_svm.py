@@ -7,8 +7,8 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-from config import DatasetConf
-from utils import train_svm_classifier
+from config import DatasetConf, TrainConf
+from utils import train_svm_classifier, build_bow, features_bow
 
 # 下载训练集和测试集
 trainset = DatasetConf.TrainDataset
@@ -43,6 +43,13 @@ def extract_hog_features(images):
 print('Extracting HOG features...')
 X_train_hog = extract_hog_features(X_train)
 X_test_hog = extract_hog_features(X_test)
+
+if TrainConf.UseCluster:
+    # 构建并训练 BoW 模型
+    bow_kmeans = build_bow(X_train_hog)
+    X_train_hog = features_bow(X_train_hog, bow_kmeans)
+    X_test_hog = features_bow(X_test_hog, bow_kmeans)
+
 print('Training SVM...')
 clf = train_svm_classifier(X_train_hog, y_train)
 
